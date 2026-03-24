@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function numberOrNull(value) {
@@ -11,6 +12,143 @@ function numberOrNull(value) {
   const parsed = Number(normalized);
   return Number.isNaN(parsed) ? null : parsed;
 }
+
+const styles = {
+  page: {
+    padding: 24,
+    fontFamily: "Arial, sans-serif",
+    background: "#f8f8fb",
+    minHeight: "100vh",
+    boxSizing: "border-box",
+  },
+  topbar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 16,
+    marginBottom: 24,
+  },
+  title: {
+    margin: 0,
+    fontSize: 56,
+    lineHeight: 1,
+  },
+  subtitle: {
+    marginTop: 12,
+    color: "#666",
+    fontSize: 18,
+  },
+  actions: {
+    display: "flex",
+    gap: 10,
+  },
+  button: {
+    padding: "10px 14px",
+    borderRadius: 8,
+    border: "1px solid #d0d0d7",
+    background: "#fff",
+    cursor: "pointer",
+  },
+  primaryButton: {
+    padding: "12px 14px",
+    borderRadius: 8,
+    border: "1px solid #1677ff",
+    background: "#1677ff",
+    color: "#fff",
+    cursor: "pointer",
+    width: "100%",
+    fontWeight: 600,
+  },
+  layout: {
+    display: "grid",
+    gridTemplateColumns: "360px minmax(0, 1fr)",
+    gap: 24,
+    alignItems: "start",
+  },
+  card: {
+    background: "#fff",
+    border: "1px solid #e3e3ea",
+    borderRadius: 12,
+    padding: 16,
+    boxSizing: "border-box",
+    width: "100%",
+  },
+  sectionTitle: {
+    textAlign: "center",
+    margin: "0 0 16px 0",
+    fontSize: 24,
+  },
+  form: {
+    display: "grid",
+    gap: 14,
+  },
+  field: {
+    display: "grid",
+    gap: 6,
+    width: "100%",
+    boxSizing: "border-box",
+  },
+  label: {
+    textAlign: "center",
+    fontSize: 18,
+    color: "#666",
+  },
+  input: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "1px solid #d8d8df",
+    fontSize: 14,
+    boxSizing: "border-box",
+  },
+  select: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "1px solid #d8d8df",
+    fontSize: 14,
+    background: "#fff",
+    boxSizing: "border-box",
+  },
+  search: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "1px solid #d8d8df",
+    marginBottom: 16,
+    boxSizing: "border-box",
+  },
+  tableWrap: {
+    overflowX: "auto",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+  },
+  th: {
+    textAlign: "left",
+    padding: "10px 12px",
+    borderBottom: "1px solid #e5e5ee",
+    color: "#666",
+    fontSize: 16,
+  },
+  td: {
+    padding: "10px 12px",
+    borderBottom: "1px solid #f0f0f5",
+    fontSize: 14,
+  },
+  row: {
+    cursor: "pointer",
+  },
+  ok: {
+    color: "green",
+    marginBottom: 12,
+  },
+  err: {
+    color: "crimson",
+    marginBottom: 12,
+  },
+};
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -56,9 +194,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (session) {
-      loadData();
-    }
+    if (session) loadData();
   }, [session]);
 
   async function loadData() {
@@ -184,73 +320,73 @@ export default function App() {
   }, [inventario, filtro]);
 
   if (loadingAuth) {
-    return <div style={{ padding: 24 }}>Cargando...</div>;
+    return <div style={styles.page}>Cargando...</div>;
   }
 
   if (!session) {
     return (
-      <div style={{ maxWidth: 420, margin: "40px auto", fontFamily: "sans-serif" }}>
-        <h1>Login</h1>
-        <form onSubmit={signIn} style={{ display: "grid", gap: 12 }}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ padding: 10 }}
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ padding: 10 }}
-          />
-          <button type="submit" style={{ padding: 10 }}>
-            Entrar
-          </button>
-        </form>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+      <div style={styles.page}>
+        <div style={{ maxWidth: 420, margin: "40px auto", ...styles.card }}>
+          <h1 style={{ marginTop: 0 }}>Login</h1>
+          <form onSubmit={signIn} style={styles.form}>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={styles.input}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+            />
+            <button type="submit" style={styles.primaryButton}>
+              Entrar
+            </button>
+          </form>
+          {error && <p style={styles.err}>{error}</p>}
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 24, fontFamily: "sans-serif" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
+    <div style={styles.page}>
+      <div style={styles.topbar}>
         <div>
-          <h1>Inventario</h1>
-          <p>Gestión básica conectada a Supabase</p>
+          <h1 style={styles.title}>Inventario</h1>
+          <div style={styles.subtitle}>Gestión básica conectada a Supabase</div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={loadData}>{loadingData ? "Recargando..." : "Recargar"}</button>
-          <button onClick={signOut}>Salir</button>
+
+        <div style={styles.actions}>
+          <button style={styles.button} onClick={loadData}>
+            {loadingData ? "Recargando..." : "Recargar"}
+          </button>
+          <button style={styles.button} onClick={signOut}>
+            Salir
+          </button>
         </div>
       </div>
 
-      {message && <p style={{ color: "green" }}>{message}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {message && <div style={styles.ok}>{message}</div>}
+      {error && <div style={styles.err}>{error}</div>}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "360px 1fr",
-          gap: 24,
-          alignItems: "start",
-        }}
-      >
-        <div style={{ border: "1px solid #ddd", padding: 16, borderRadius: 8 }}>
-          <h2>Alta / edición</h2>
+      <div style={styles.layout}>
+        <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>Alta / edición</h2>
 
-          <form onSubmit={upsertInventario} style={{ display: "grid", gap: 12 }}>
-            <div>
-              <label>Proveedor</label>
+          <form onSubmit={upsertInventario} style={styles.form}>
+            <div style={styles.field}>
+              <label style={styles.label}>Proveedor</label>
               <select
                 value={inventarioForm.id_prov}
                 onChange={(e) =>
                   setInventarioForm((f) => ({ ...f, id_prov: e.target.value }))
                 }
-                style={{ width: "100%", padding: 10, marginTop: 4 }}
+                style={styles.select}
               >
                 <option value="">Selecciona proveedor</option>
                 {proveedores.map((p) => (
@@ -261,14 +397,14 @@ export default function App() {
               </select>
             </div>
 
-            <div>
-              <label>Ingrediente</label>
+            <div style={styles.field}>
+              <label style={styles.label}>Ingrediente</label>
               <select
                 value={inventarioForm.id_ing}
                 onChange={(e) =>
                   setInventarioForm((f) => ({ ...f, id_ing: e.target.value }))
                 }
-                style={{ width: "100%", padding: 10, marginTop: 4 }}
+                style={styles.select}
               >
                 <option value="">Selecciona ingrediente</option>
                 {ingredientes.map((i) => (
@@ -279,81 +415,83 @@ export default function App() {
               </select>
             </div>
 
-            <div>
-              <label>Inventario (kg)</label>
+            <div style={styles.field}>
+              <label style={styles.label}>Inventario (kg)</label>
               <input
                 value={inventarioForm.inv_kg}
                 onChange={(e) =>
                   setInventarioForm((f) => ({ ...f, inv_kg: e.target.value }))
                 }
-                style={{ width: "100%", padding: 10, marginTop: 4 }}
+                style={styles.input}
               />
             </div>
 
-            <div>
-              <label>Precio €/kg</label>
+            <div style={styles.field}>
+              <label style={styles.label}>Precio €/kg</label>
               <input
                 value={inventarioForm.eur_kg}
                 onChange={(e) =>
                   setInventarioForm((f) => ({ ...f, eur_kg: e.target.value }))
                 }
-                style={{ width: "100%", padding: 10, marginTop: 4 }}
+                style={styles.input}
               />
             </div>
 
-            <div>
-              <label>Calidad</label>
+            <div style={styles.field}>
+              <label style={styles.label}>Calidad</label>
               <input
                 value={inventarioForm.calidad}
                 onChange={(e) =>
                   setInventarioForm((f) => ({ ...f, calidad: e.target.value }))
                 }
-                style={{ width: "100%", padding: 10, marginTop: 4 }}
+                style={styles.input}
               />
             </div>
 
-            <button type="submit" style={{ padding: 12 }}>
+            <button type="submit" style={styles.primaryButton}>
               {saving ? "Guardando..." : "Guardar"}
             </button>
           </form>
         </div>
 
-        <div style={{ border: "1px solid #ddd", padding: 16, borderRadius: 8 }}>
-          <h2>Inventario actual</h2>
+        <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>Inventario actual</h2>
 
           <input
             placeholder="Buscar por proveedor o ingrediente"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
-            style={{ width: "100%", padding: 10, margin: "12px 0 16px" }}
+            style={styles.search}
           />
 
-          <table width="100%" cellPadding="10" style={{ borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>
-                <th>Proveedor</th>
-                <th>Ingrediente</th>
-                <th>Inventario (kg)</th>
-                <th>€/kg</th>
-                <th>Calidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inventarioFiltrado.map((row) => (
-                <tr
-                  key={`${row.id_prov}-${row.id_ing}`}
-                  onClick={() => cargarFila(row)}
-                  style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
-                >
-                  <td>{row.Proveedores?.nombre ?? row.id_prov}</td>
-                  <td>{row.Ingredientes?.nombre ?? row.id_ing}</td>
-                  <td>{row.inv_kg ?? "—"}</td>
-                  <td>{row.eur_kg ?? "—"}</td>
-                  <td>{row.calidad ?? "—"}</td>
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Proveedor</th>
+                  <th style={styles.th}>Ingrediente</th>
+                  <th style={styles.th}>Inventario (kg)</th>
+                  <th style={styles.th}>€/kg</th>
+                  <th style={styles.th}>Calidad</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {inventarioFiltrado.map((row) => (
+                  <tr
+                    key={`${row.id_prov}-${row.id_ing}`}
+                    onClick={() => cargarFila(row)}
+                    style={styles.row}
+                  >
+                    <td style={styles.td}>{row.Proveedores?.nombre ?? row.id_prov}</td>
+                    <td style={styles.td}>{row.Ingredientes?.nombre ?? row.id_ing}</td>
+                    <td style={styles.td}>{row.inv_kg ?? "—"}</td>
+                    <td style={styles.td}>{row.eur_kg ?? "—"}</td>
+                    <td style={styles.td}>{row.calidad ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
