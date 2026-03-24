@@ -7,9 +7,10 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function numberOrNull(value) {
-  if (!value) return null;
-  const parsed = Number(String(value).replace(",", "."));
-  return isNaN(parsed) ? null : parsed;
+  if (value === "" || value === null || value === undefined) return null;
+  const normalized = String(value).replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 const styles = {
@@ -18,88 +19,145 @@ const styles = {
     fontFamily: "Arial, sans-serif",
     background: "#f8f8fb",
     minHeight: "100vh",
-  },
-
-  layout: {
-    display: "grid",
-    gridTemplateColumns: "360px 1fr",
-    gap: 24,
-  },
-
-  card: {
-    background: "#fff",
-    border: "1px solid #ddd",
-    borderRadius: 10,
-    padding: 16,
-  },
-
-  form: {
-    display: "grid",
-    gap: 12,
-  },
-
-  input: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 6,
-    border: "1px solid #ccc",
     boxSizing: "border-box",
   },
-
-  select: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 6,
-    border: "1px solid #ccc",
-    boxSizing: "border-box",
+  topbar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 16,
+    marginBottom: 24,
   },
-
+  title: {
+    margin: 0,
+    fontSize: 56,
+    lineHeight: 1,
+  },
+  subtitle: {
+    marginTop: 12,
+    color: "#666",
+    fontSize: 18,
+  },
+  actions: {
+    display: "flex",
+    gap: 10,
+  },
   button: {
-    padding: 12,
-    background: "#1677ff",
-    color: "white",
-    border: "none",
-    borderRadius: 6,
+    padding: "10px 14px",
+    borderRadius: 8,
+    border: "1px solid #d0d0d7",
+    background: "#fff",
     cursor: "pointer",
   },
-
+  primaryButton: {
+    padding: "12px 14px",
+    borderRadius: 8,
+    border: "1px solid #1677ff",
+    background: "#1677ff",
+    color: "#fff",
+    cursor: "pointer",
+    width: "100%",
+    fontWeight: 600,
+  },
+  layout: {
+    display: "grid",
+    gridTemplateColumns: "360px minmax(0, 1fr)",
+    gap: 24,
+    alignItems: "start",
+  },
+  card: {
+    background: "#fff",
+    border: "1px solid #e3e3ea",
+    borderRadius: 12,
+    padding: 16,
+    boxSizing: "border-box",
+    width: "100%",
+  },
+  sectionTitle: {
+    textAlign: "center",
+    margin: "0 0 16px 0",
+    fontSize: 24,
+  },
+  form: {
+    display: "grid",
+    gap: 14,
+  },
+  field: {
+    display: "grid",
+    gap: 6,
+    width: "100%",
+    boxSizing: "border-box",
+  },
+  label: {
+    textAlign: "center",
+    fontSize: 18,
+    color: "#666",
+  },
+  input: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "1px solid #d8d8df",
+    fontSize: 14,
+    boxSizing: "border-box",
+  },
+  select: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "1px solid #d8d8df",
+    fontSize: 14,
+    background: "#fff",
+    boxSizing: "border-box",
+  },
+  search: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "1px solid #d8d8df",
+    marginBottom: 16,
+    boxSizing: "border-box",
+  },
+  tableWrap: {
+    overflowX: "auto",
+  },
   table: {
     width: "100%",
     borderCollapse: "collapse",
     tableLayout: "fixed",
   },
-
   th: {
-    textAlign: "left",
-    padding: 10,
-    borderBottom: "1px solid #ddd",
+  textAlign: "left",
+  padding: "10px 12px",
+  borderBottom: "1px solid #e5e5ee",
+  color: "#666",
+  fontSize: 16,
+  verticalAlign: "middle",
+  whiteSpace: "nowrap",
   },
-
-  thRight: {
-    textAlign: "right",
-    padding: 10,
-    borderBottom: "1px solid #ddd",
-  },
-
   td: {
     textAlign: "left",
-    padding: 10,
-    borderBottom: "1px solid #eee",
+    padding: "10px 12px",
+    borderBottom: "1px solid #f0f0f5",
+    fontSize: 14,
+    verticalAlign: "middle",
   },
-
-  tdRight: {
-    textAlign: "right",
-    padding: 10,
-    borderBottom: "1px solid #eee",
-  },
-
   row: {
     cursor: "pointer",
+  },
+  ok: {
+    color: "green",
+    marginBottom: 12,
+  },
+  err: {
+    color: "crimson",
+    marginBottom: 12,
   },
 };
 
 export default function App() {
   const [session, setSession] = useState(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -108,9 +166,13 @@ export default function App() {
   const [ingredientes, setIngredientes] = useState([]);
   const [inventario, setInventario] = useState([]);
 
+  const [loadingData, setLoadingData] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [filtro, setFiltro] = useState("");
 
-  const [form, setForm] = useState({
+  const [inventarioForm, setInventarioForm] = useState({
     id_prov: "",
     id_ing: "",
     inv_kg: "",
@@ -119,11 +181,21 @@ export default function App() {
   });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    async function init() {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session ?? null);
+      setLoadingAuth(false);
+    }
+
+    init();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
     });
 
-    supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -131,167 +203,300 @@ export default function App() {
   }, [session]);
 
   async function loadData() {
-    const [p, i, inv] = await Promise.all([
-      supabase.from("Proveedores").select("*"),
-      supabase.from("Ingredientes").select("*"),
-      supabase.from("Inventario").select(`
-        *,
-        Proveedores(nombre),
-        Ingredientes(nombre)
-      `),
-    ]);
+    setLoadingData(true);
+    setError("");
 
-    setProveedores(p.data || []);
-    setIngredientes(i.data || []);
-    setInventario(inv.data || []);
+    try {
+      const [provRes, ingRes, invRes] = await Promise.all([
+        supabase.from("Proveedores").select("id_prov, nombre").order("id_prov"),
+        supabase
+          .from("Ingredientes")
+          .select("id_ing, nombre, congelado, tipo, magro_mj, peso_calidad")
+          .order("id_ing"),
+        supabase
+          .from("Inventario")
+          .select(`
+            id_prov,
+            id_ing,
+            eur_kg,
+            calidad,
+            inv_kg,
+            Proveedores ( nombre ),
+            Ingredientes ( nombre )
+          `),
+      ]);
+
+      const firstError = [provRes, ingRes, invRes].find((r) => r.error)?.error;
+      if (firstError) throw firstError;
+
+      setProveedores(provRes.data ?? []);
+      setIngredientes(ingRes.data ?? []);
+      setInventario(invRes.data ?? []);
+    } catch (err) {
+      setError(err.message || "Error cargando datos.");
+    } finally {
+      setLoadingData(false);
+    }
   }
 
   async function signIn(e) {
     e.preventDefault();
-    await supabase.auth.signInWithPassword({ email, password });
+    setError("");
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) setError(error.message);
   }
 
-  async function save(e) {
+  async function signOut() {
+    await supabase.auth.signOut();
+  }
+
+  async function upsertInventario(e) {
     e.preventDefault();
+    setSaving(true);
+    setError("");
+    setMessage("");
 
-    await supabase.from("Inventario").upsert(
-      {
-        id_prov: form.id_prov,
-        id_ing: form.id_ing,
-        inv_kg: numberOrNull(form.inv_kg),
-        eur_kg: numberOrNull(form.eur_kg),
-        calidad: numberOrNull(form.calidad),
-      },
-      { onConflict: "id_ing,id_prov" }
-    );
+    try {
+      if (!inventarioForm.id_prov || !inventarioForm.id_ing) {
+        throw new Error("Selecciona proveedor e ingrediente.");
+      }
 
-    loadData();
+      const payload = {
+        id_prov: inventarioForm.id_prov,
+        id_ing: inventarioForm.id_ing,
+        inv_kg: numberOrNull(inventarioForm.inv_kg),
+        eur_kg: numberOrNull(inventarioForm.eur_kg),
+        calidad: numberOrNull(inventarioForm.calidad),
+      };
+
+      const { error } = await supabase
+        .from("Inventario")
+        .upsert(payload, { onConflict: "id_ing,id_prov" });
+
+      if (error) throw error;
+
+      setInventarioForm({
+        id_prov: "",
+        id_ing: "",
+        inv_kg: "",
+        eur_kg: "",
+        calidad: "",
+      });
+
+      setMessage("Inventario guardado correctamente.");
+      await loadData();
+    } catch (err) {
+      setError(err.message || "No se pudo guardar.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const data = useMemo(() => {
-    return inventario.filter((r) =>
-      (r.Proveedores?.nombre || "").toLowerCase().includes(filtro.toLowerCase())
-    );
+  function cargarFila(row) {
+    setInventarioForm({
+      id_prov: row.id_prov,
+      id_ing: row.id_ing,
+      inv_kg: row.inv_kg ?? "",
+      eur_kg: row.eur_kg ?? "",
+      calidad: row.calidad ?? "",
+    });
+    setMessage("Fila cargada para editar.");
+  }
+
+  const inventarioFiltrado = useMemo(() => {
+    const q = filtro.trim().toLowerCase();
+    if (!q) return inventario;
+
+    return inventario.filter((row) => {
+      const proveedor = row.Proveedores?.nombre?.toLowerCase() ?? "";
+      const ingrediente = row.Ingredientes?.nombre?.toLowerCase() ?? "";
+      return (
+        proveedor.includes(q) ||
+        ingrediente.includes(q) ||
+        row.id_prov.toLowerCase().includes(q) ||
+        row.id_ing.toLowerCase().includes(q)
+      );
+    });
   }, [inventario, filtro]);
+
+  if (loadingAuth) {
+    return <div style={styles.page}>Cargando...</div>;
+  }
 
   if (!session) {
     return (
-      <form onSubmit={signIn} style={{ padding: 40 }}>
-        <input
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          placeholder="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button>Login</button>
-      </form>
+      <div style={styles.page}>
+        <div style={{ maxWidth: 420, margin: "40px auto", ...styles.card }}>
+          <h1 style={{ marginTop: 0 }}>Login</h1>
+          <form onSubmit={signIn} style={styles.form}>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={styles.input}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+            />
+            <button type="submit" style={styles.primaryButton}>
+              Entrar
+            </button>
+          </form>
+          {error && <p style={styles.err}>{error}</p>}
+        </div>
+      </div>
     );
   }
 
   return (
     <div style={styles.page}>
-      <h1>Inventario</h1>
+      <div style={styles.topbar}>
+        <div>
+          <h1 style={styles.title}>Inventario</h1>
+          <div style={styles.subtitle}>Gestión básica conectada a Supabase</div>
+        </div>
+
+        <div style={styles.actions}>
+          <button style={styles.button} onClick={loadData}>
+            {loadingData ? "Recargando..." : "Recargar"}
+          </button>
+          <button style={styles.button} onClick={signOut}>
+            Salir
+          </button>
+        </div>
+      </div>
+
+      {message && <div style={styles.ok}>{message}</div>}
+      {error && <div style={styles.err}>{error}</div>}
 
       <div style={styles.layout}>
         <div style={styles.card}>
-          <form onSubmit={save} style={styles.form}>
-            <select
-              style={styles.select}
-              value={form.id_prov}
-              onChange={(e) =>
-                setForm({ ...form, id_prov: e.target.value })
-              }
-            >
-              <option>Proveedor</option>
-              {proveedores.map((p) => (
-                <option key={p.id_prov} value={p.id_prov}>
-                  {p.nombre}
-                </option>
-              ))}
-            </select>
+          <h2 style={styles.sectionTitle}>Alta / edición</h2>
 
-            <select
-              style={styles.select}
-              value={form.id_ing}
-              onChange={(e) =>
-                setForm({ ...form, id_ing: e.target.value })
-              }
-            >
-              <option>Ingrediente</option>
-              {ingredientes.map((i) => (
-                <option key={i.id_ing} value={i.id_ing}>
-                  {i.nombre}
-                </option>
-              ))}
-            </select>
+          <form onSubmit={upsertInventario} style={styles.form}>
+            <div style={styles.field}>
+              <label style={styles.label}>Proveedor</label>
+              <select
+                value={inventarioForm.id_prov}
+                onChange={(e) =>
+                  setInventarioForm((f) => ({ ...f, id_prov: e.target.value }))
+                }
+                style={styles.select}
+              >
+                <option value="">Selecciona proveedor</option>
+                {proveedores.map((p) => (
+                  <option key={p.id_prov} value={p.id_prov}>
+                    {p.nombre} ({p.id_prov})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <input
-              style={styles.input}
-              placeholder="Inventario kg"
-              value={form.inv_kg}
-              onChange={(e) =>
-                setForm({ ...form, inv_kg: e.target.value })
-              }
-            />
+            <div style={styles.field}>
+              <label style={styles.label}>Ingrediente</label>
+              <select
+                value={inventarioForm.id_ing}
+                onChange={(e) =>
+                  setInventarioForm((f) => ({ ...f, id_ing: e.target.value }))
+                }
+                style={styles.select}
+              >
+                <option value="">Selecciona ingrediente</option>
+                {ingredientes.map((i) => (
+                  <option key={i.id_ing} value={i.id_ing}>
+                    {i.nombre} ({i.id_ing})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <input
-              style={styles.input}
-              placeholder="€/kg"
-              value={form.eur_kg}
-              onChange={(e) =>
-                setForm({ ...form, eur_kg: e.target.value })
-              }
-            />
+            <div style={styles.field}>
+              <label style={styles.label}>Inventario (kg)</label>
+              <input
+                value={inventarioForm.inv_kg}
+                onChange={(e) =>
+                  setInventarioForm((f) => ({ ...f, inv_kg: e.target.value }))
+                }
+                style={styles.input}
+              />
+            </div>
 
-            <input
-              style={styles.input}
-              placeholder="Calidad"
-              value={form.calidad}
-              onChange={(e) =>
-                setForm({ ...form, calidad: e.target.value })
-              }
-            />
+            <div style={styles.field}>
+              <label style={styles.label}>Precio €/kg</label>
+              <input
+                value={inventarioForm.eur_kg}
+                onChange={(e) =>
+                  setInventarioForm((f) => ({ ...f, eur_kg: e.target.value }))
+                }
+                style={styles.input}
+              />
+            </div>
 
-            <button style={styles.button}>Guardar</button>
+            <div style={styles.field}>
+              <label style={styles.label}>Calidad</label>
+              <input
+                value={inventarioForm.calidad}
+                onChange={(e) =>
+                  setInventarioForm((f) => ({ ...f, calidad: e.target.value }))
+                }
+                style={styles.input}
+              />
+            </div>
+
+            <button type="submit" style={styles.primaryButton}>
+              {saving ? "Guardando..." : "Guardar"}
+            </button>
           </form>
         </div>
 
         <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>Inventario actual</h2>
+
           <input
-            placeholder="Buscar"
-            style={styles.input}
+            placeholder="Buscar por proveedor o ingrediente"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
+            style={styles.search}
           />
 
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Proveedor</th>
-                <th style={styles.th}>Ingrediente</th>
-                <th style={styles.thRight}>Inventario (kg)</th>
-                <th style={styles.thRight}>€/kg</th>
-                <th style={styles.thRight}>Calidad</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {data.map((r) => (
-                <tr key={r.id_prov + r.id_ing} style={styles.row}>
-                  <td style={styles.td}>{r.Proveedores?.nombre}</td>
-                  <td style={styles.td}>{r.Ingredientes?.nombre}</td>
-                  <td style={styles.tdRight}>{r.inv_kg ?? "-"}</td>
-                  <td style={styles.tdRight}>{r.eur_kg ?? "-"}</td>
-                  <td style={styles.tdRight}>{r.calidad ?? "-"}</td>
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Proveedor</th>
+                  <th style={styles.th}>Ingrediente</th>
+                  <th style={styles.th}>Inventario (kg)</th>
+                  <th style={styles.th}>€/kg</th>
+                  <th style={styles.th}>Calidad</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {inventarioFiltrado.map((row) => (
+                  <tr
+                    key={`${row.id_prov}-${row.id_ing}`}
+                    onClick={() => cargarFila(row)}
+                    style={styles.row}
+                  >
+                    <td style={styles.td}>{row.Proveedores?.nombre ?? row.id_prov}</td>
+                    <td style={styles.td}>{row.Ingredientes?.nombre ?? row.id_ing}</td>
+                    <td style={styles.td}>{row.inv_kg ?? "—"}</td>
+                    <td style={styles.td}>{row.eur_kg ?? "—"}</td>
+                    <td style={styles.td}>{row.calidad ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
