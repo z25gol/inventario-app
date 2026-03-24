@@ -126,17 +126,17 @@ const styles = {
     borderCollapse: "collapse",
     tableLayout: "fixed",
   },
-  th: {
-  textAlign: "left",
-  padding: "10px 12px",
-  borderBottom: "1px solid #e5e5ee",
-  color: "#666",
-  fontSize: 16,
-  verticalAlign: "middle",
-  whiteSpace: "nowrap",
+  thRight: {
+    textAlign: "right",
+    padding: "10px 12px",
+    borderBottom: "1px solid #e5e5ee",
+    color: "#666",
+    fontSize: 16,
+    verticalAlign: "middle",
+    whiteSpace: "nowrap",
   },
-  td: {
-    textAlign: "left",
+  tdRight: {
+    textAlign: "right",
     padding: "10px 12px",
     borderBottom: "1px solid #f0f0f5",
     fontSize: 14,
@@ -475,9 +475,9 @@ export default function App() {
                 <tr>
                   <th style={styles.th}>Proveedor</th>
                   <th style={styles.th}>Ingrediente</th>
-                  <th style={styles.th}>Inventario (kg)</th>
-                  <th style={styles.th}>€/kg</th>
-                  <th style={styles.th}>Calidad</th>
+                  <th style={styles.thRight}>Inventario (kg)</th>
+                  <th style={styles.thRight}>€/kg</th>
+                  <th style={styles.thRight}>Calidad</th>
                 </tr>
               </thead>
               <tbody>
@@ -489,9 +489,9 @@ export default function App() {
                   >
                     <td style={styles.td}>{row.Proveedores?.nombre ?? row.id_prov}</td>
                     <td style={styles.td}>{row.Ingredientes?.nombre ?? row.id_ing}</td>
-                    <td style={styles.td}>{row.inv_kg ?? "—"}</td>
-                    <td style={styles.td}>{row.eur_kg ?? "—"}</td>
-                    <td style={styles.td}>{row.calidad ?? "—"}</td>
+                    <td style={styles.tdRight}>{row.inv_kg ?? "—"}</td>
+                    <td style={styles.tdRight}>{row.eur_kg ?? "—"}</td>
+                    <td style={styles.tdRight}>{row.calidad ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
