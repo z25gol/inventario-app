@@ -13,6 +13,14 @@ function numberOrNull(value) {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+function calidadLabel(value) {
+  const num = Number(value);
+  if (num === 0.9) return "Media";
+  if (num === 1) return "Buena";
+  if (num === 1.1) return "Excelente";
+  return "—";
+}
+
 const styles = {
   page: {
     padding: 24,
@@ -125,6 +133,22 @@ const styles = {
     width: "100%",
     borderCollapse: "collapse",
     tableLayout: "fixed",
+  },
+  th: {
+    textAlign: "left",
+    padding: "10px 12px",
+    borderBottom: "1px solid #e5e5ee",
+    color: "#666",
+    fontSize: 16,
+    verticalAlign: "middle",
+    whiteSpace: "nowrap",
+  },
+  td: {
+    textAlign: "left",
+    padding: "10px 12px",
+    borderBottom: "1px solid #f0f0f5",
+    fontSize: 14,
+    verticalAlign: "middle",
   },
   thRight: {
     textAlign: "right",
@@ -266,6 +290,10 @@ export default function App() {
         throw new Error("Selecciona proveedor e ingrediente.");
       }
 
+      if (!inventarioForm.calidad) {
+        throw new Error("Selecciona una calidad.");
+      }
+
       const payload = {
         id_prov: inventarioForm.id_prov,
         id_ing: inventarioForm.id_ing,
@@ -303,7 +331,10 @@ export default function App() {
       id_ing: row.id_ing,
       inv_kg: row.inv_kg ?? "",
       eur_kg: row.eur_kg ?? "",
-      calidad: row.calidad ?? "",
+      calidad:
+        row.calidad === null || row.calidad === undefined
+          ? ""
+          : String(row.calidad),
     });
     setMessage("Fila cargada para editar.");
   }
@@ -444,13 +475,18 @@ export default function App() {
 
             <div style={styles.field}>
               <label style={styles.label}>Calidad</label>
-              <input
+              <select
                 value={inventarioForm.calidad}
                 onChange={(e) =>
                   setInventarioForm((f) => ({ ...f, calidad: e.target.value }))
                 }
-                style={styles.input}
-              />
+                style={styles.select}
+              >
+                <option value="">Selecciona calidad</option>
+                <option value="0.9">Media</option>
+                <option value="1">Buena</option>
+                <option value="1.1">Excelente</option>
+              </select>
             </div>
 
             <button type="submit" style={styles.primaryButton}>
@@ -491,7 +527,7 @@ export default function App() {
                     <td style={styles.td}>{row.Ingredientes?.nombre ?? row.id_ing}</td>
                     <td style={styles.tdRight}>{row.inv_kg ?? "—"}</td>
                     <td style={styles.tdRight}>{row.eur_kg ?? "—"}</td>
-                    <td style={styles.tdRight}>{row.calidad ?? "—"}</td>
+                    <td style={styles.tdRight}>{calidadLabel(row.calidad)}</td>
                   </tr>
                 ))}
               </tbody>
